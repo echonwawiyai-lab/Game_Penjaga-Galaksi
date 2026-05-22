@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjaga Galaksi - Permainan Arked Retro</title>
+    <!-- Tailwind CSS untuk UI yang moden -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght=500;700&display=swap');
+        
+        .font-retro {
+            font-family: 'Press Start 2P', monospace;
+        }
+        .font-sans-modern {
+            font-family: 'Rajdhani', sans-serif;
+        }
+        body {
+            background-color: #03001e;
+            overflow: hidden;
+        }
+        /* Kesan bayangan neon untuk elemen UI */
+        .neon-border {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5), inset 0 0 15px rgba(0, 242, 254, 0.2);
+            border: 2px solid #00f2fe;
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.8);
+        }
+        .neon-text-pink {
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.8);
+        }
+        
+        /* Animasi Kustom Baru untuk Layar Utama */
+        @keyframes neonPulse {
+            0%, 100% { text-shadow: 0 0 8px rgba(0, 242, 254, 0.8), 0 0 20px rgba(0, 242, 254, 0.6), 0 0 40px rgba(0, 242, 254, 0.3); }
+            50% { text-shadow: 0 0 18px rgba(0, 242, 254, 1), 0 0 35px rgba(0, 242, 254, 0.8), 0 0 60px rgba(0, 242, 254, 0.5); }
+        }
+        @keyframes neonPulsePink {
+            0%, 100% { text-shadow: 0 0 8px rgba(255, 0, 127, 0.8), 0 0 20px rgba(255, 0, 127, 0.6), 0 0 40px rgba(255, 0, 127, 0.3); }
+            50% { text-shadow: 0 0 18px rgba(255, 0, 127, 1), 0 0 35px rgba(255, 0, 127, 0.8), 0 0 60px rgba(255, 0, 127, 0.5); }
+        }
+        @keyframes floatEffect {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes cyberGrid {
+            from { background-position: 0 0; }
+            to { background-position: 0 40px; }
+        }
+        @keyframes pulseButton {
+            0% { box-shadow: 0 0 10px rgba(0, 242, 254, 0.6), inset 0 0 5px rgba(0, 242, 254, 0.3); }
+            100% { box-shadow: 0 0 25px rgba(0, 242, 254, 1), inset 0 0 15px rgba(0, 242, 254, 0.5); }
+        }
+        
+        .animate-neon-cyan {
+            animation: neonPulse 2s infinite alternate;
+        }
+        .animate-neon-pink {
+            animation: neonPulsePink 2.5s infinite alternate;
+        }
+        .animate-float {
+            animation: floatEffect 4s ease-in-out infinite;
+        }
+        .animate-grid {
+            animation: cyberGrid 3s linear infinite;
+        }
+        .btn-glowing-pulse {
+            animation: pulseButton 1.5s infinite alternate;
+        }
+        
+        /* Pola kisi-kisi siber yang bergerak lambat di menu utama */
+        .cyber-grid-pattern {
+            background-image: linear-gradient(rgba(0, 242, 254, 0.08) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 242, 254, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-center items-center font-sans-modern text-white select-none p-4">
+
+    <!-- Bekas Utama Permainan (Ukuran diperbesar menjadi max-w-5xl dengan rasio lebar 16:10) -->
+    <div class="relative w-full max-w-5xl aspect-[16/10] bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-slate-800">
+        
+        <!-- Kepala HUD -->
+        <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-slate-400">Skor</p>
+                <p id="score-display" class="text-2xl font-bold neon-text-cyan text-[#00f2fe]">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-xs uppercase tracking-wider text-slate-400">Ronde</p>
+                <p id="level-display" class="text-xl font-bold text-yellow-400">1</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs uppercase tracking-wider text-slate-400">Nyawa</p>
+                <div id="lives-display" class="flex gap-1 justify-end mt-1">
+                    <!-- Diisi secara dinamik oleh JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar HP Pesawat Raja (Muncul hanya saat Boss Fight Ronde 10) -->
+        <div id="boss-hp-container" class="absolute top-20 left-1/2 -translate-x-1/2 w-4/5 max-w-md bg-slate-900/90 p-3 rounded-lg border border-red-500/50 hidden z-10 text-center shadow-lg">
+            <p class="text-[9px] font-retro uppercase text-red-500 mb-1 tracking-wider animate-pulse">⚠️ PESAWAT RAJA GALAKSI ⚠️</p>
+            <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+                <div id="boss-hp-bar" class="bg-gradient-to-r from-red-600 to-pink-500 h-full w-full transition-all duration-75"></div>
+            </div>
+        </div>
+
+        <!-- Tombol Kontrol Kiri Atas & Kanan Atas -->
+        <button id="home-btn" class="absolute top-16 left-4 z-10 bg-black/60 hover:bg-black/80 p-2.5 rounded-full border border-slate-700 transition-all text-xs flex items-center gap-1 text-[#00f2fe] hover:scale-105 hidden pointer-events-auto">
+            🏠 Menu
+        </button>
+
+        <button id="mute-btn" class="absolute top-16 right-4 z-10 bg-black/60 hover:bg-black/80 p-2.5 rounded-full border border-slate-700 transition-all text-xs hover:scale-105 pointer-events-auto">
+            🔊 Bunyi Aktif
+        </button>
+
+        <!-- Canvas Jendela Kuis / Pertanyaan Edukatif -->
+        <div id="quiz-screen" class="absolute inset-0 bg-black/95 flex flex-col justify-center items-center p-6 z-30 text-center hidden pointer-events-auto">
+            <div class="max-w-xl bg-slate-900/95 border-2 border-[#00f2fe] rounded-2xl p-8 shadow-[0_0_30px_rgba(0,242,254,0.3)] relative">
+                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#00f2fe] text-black font-retro text-[10px] px-4 py-2 rounded-full shadow-lg">
+                    TRANSMISI COCKPIT
+                </div>
+                <h3 id="quiz-title" class="text-lg md:text-xl font-retro text-yellow-400 mt-2 mb-4 tracking-wide">ENGLISH SECURITY CHALLENGE</h3>
+                <p id="quiz-question" class="text-slate-200 text-sm md:text-base mb-6 font-sans-modern leading-relaxed">Pertanyaan sedang dimuat...</p>
+                
+                <!-- Pilihan Jawaban -->
+                <div id="quiz-options" class="flex flex-col gap-3 w-full text-left">
+                    <!-- Tombol diisi dinamis oleh JS -->
+                </div>
+                
+                <p id="quiz-feedback" class="mt-6 text-sm font-semibold tracking-wide hidden"></p>
+            </div>
+        </div>
+
+        <!-- Kanvas Permainan -->
+        <canvas id="game-canvas" class="w-full h-full block bg-radial-at-b from-slate-950 to-black"></canvas>
+
+        <!-- Skrin Mula (Start Screen dengan Estetika Menyala & Efek Cyber Grid Baru) -->
+        <div id="start-screen" class="absolute inset-0 bg-gradient-to-b from-black/90 via-slate-950/95 to-black/90 flex flex-col justify-center items-center p-6 z-20 text-center transition-opacity duration-300 overflow-hidden pointer-events-auto">
+            
+            <!-- Animasi Pola Kisi Grid Laser Luar Angkasa -->
+            <div class="absolute inset-0 cyber-grid-pattern animate-grid opacity-30 pointer-events-none"></div>
+            
+            <!-- Elemen Efaya Radial di Tengah Belakang -->
+            <div class="absolute w-[500px] h-[500px] bg-[#00f2fe]/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+            <div class="animate-float flex flex-col items-center z-10 relative">
+                <!-- Ornamen Garis Cyber Pembuka -->
+                <div class="w-24 h-1 bg-[#00f2fe] mb-4 rounded shadow-[0_0_10px_#00f2fe]"></div>
+                
+                <h1 class="text-6xl md:text-8xl font-retro text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#4facfe] mb-1 animate-neon-cyan tracking-wider">
+                    PENJAGA
+                </h1>
+                <h1 class="text-6xl md:text-8xl font-retro text-transparent bg-clip-text bg-gradient-to-r from-[#ff0844] to-[#ffb199] mb-6 animate-neon-pink tracking-wider">
+                    GALAKSI
+                </h1>
+                
+                <div class="w-24 h-1 bg-[#ff0844] mt-2 mb-6 rounded shadow-[0_0_10px_#ff0844]"></div>
+            </div>
+
+            <!-- Tampilan Skor Tertinggi Sesi Ini (Gaya Neon Menyala) -->
+            <div class="mb-4 bg-slate-950/90 px-6 py-2 rounded-full border border-[#00f2fe]/60 shadow-[0_0_15px_rgba(0,242,254,0.3)] z-10">
+                <p class="text-sm uppercase tracking-widest text-slate-300 font-bold">
+                    🏆 Skor Terbaik Anda: <span id="high-score-display" class="text-[#00f2fe] font-retro ml-2 neon-text-cyan">0</span>
+                </p>
+            </div>
+
+            <!-- SISTEM SELEKSI ARENA (Pilih Tempat Bermain) -->
+            <div class="mb-6 z-10 w-11/12 max-w-md bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                <p class="text-xs uppercase tracking-widest text-[#00f2fe] font-retro mb-2 text-center neon-text-cyan">PILIH ARENA PERTEMPURAN:</p>
+                <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+                    <button onclick="setTheme('space')" id="theme-space" class="py-2 px-3 rounded-lg border bg-slate-900 border-[#00f2fe] text-[#00f2fe] hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(0,242,254,0.4)] scale-105">🌌 Angkasa</button>
+                    <button onclick="setTheme('daytime')" id="theme-daytime" class="py-2 px-3 rounded-lg border bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-900 transition-all flex items-center justify-center gap-1.5">☀️ Siang Hari</button>
+                    <button onclick="setTheme('sunset')" id="theme-sunset" class="py-2 px-3 rounded-lg border bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-900 transition-all flex items-center justify-center gap-1.5">🌇 Langit Senja</button>
+                    <button onclick="setTheme('cyber')" id="theme-cyber" class="py-2 px-3 rounded-lg border bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-900 transition-all flex items-center justify-center gap-1.5">🔮 Cyber Neon</button>
+                </div>
+            </div>
+            
+            <p class="text-slate-300 mb-6 max-w-xl text-sm md:text-base px-6 font-sans-modern leading-relaxed z-10">
+                Waspada! Batu meteor kini membara dan kapal musuh F-22 taktis aktif menyerang balik! Terbang bebas dengan jet tempur F-22 Raptor Anda dibantu oleh sepasang Jet Pengawal setia!
+            </p>
+
+            <button id="start-btn" class="px-14 py-5 bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-black font-retro text-sm rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all border-2 border-[#00f2fe] btn-glowing-pulse z-10 tracking-widest pointer-events-auto">
+                MULA BERMAIN
+            </button>
+
+            <!-- Arahan Kawalan (Bentuk Kokpit Transparan Neon Baru) -->
+            <div class="mt-8 text-xs text-slate-400 space-y-2 bg-slate-950/80 p-4 rounded-xl border border-[#00f2fe]/30 w-11/12 max-w-xl mx-auto z-10 backdrop-blur-sm shadow-[inset_0_0_10px_rgba(0,242,254,0.05)]">
+                <p class="font-bold text-[#00f2fe] neon-text-cyan tracking-widest">SISTEM KAWALAN KOKPIT:</p>
+                <p class="hidden md:block text-left pl-4 text-slate-300 leading-relaxed">💻 Komputer: Gunakan tombol <span class="text-[#00f2fe] font-semibold">Arrow Kiri/Kanan/Atas/Bawah</span> atau <span class="text-[#00f2fe] font-semibold">A/D/W/S</span> untuk bergerak bebas di ruang yang luas. Tekan <span class="text-[#00f2fe] font-semibold">Spasi</span> untuk Menembak.</p>
+                <p class="md:hidden text-left pl-4 text-slate-300 leading-relaxed">📱 Telefon/Tablet: Sentuh & Seret jari Anda di mana saja pada layar untuk terbang bebas ke 4 arah secara responsif (Tembakan otomatis aktif!).</p>
+            </div>
+        </div>
+
+        <!-- Skrin Tamat Permainan (Game Over Screen) -->
+        <div id="game-over-screen" class="absolute inset-0 bg-black/95 flex flex-col justify-center items-center p-6 z-20 text-center hidden pointer-events-none">
+            <h2 class="text-3xl md:text-4xl font-retro text-red-500 mb-2 tracking-widest animate-pulse">MISI GAGAL</h2>
+            <p class="text-slate-400 mb-8 text-sm">Pesawat Anda telah musnah dalam pertempuran.</p>
+
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 mb-8 w-64">
+                <p class="text-xs text-slate-400 uppercase tracking-wider">Skor Akhir</p>
+                <p id="final-score" class="text-4xl font-bold text-[#00f2fe] neon-text-cyan my-1">0</p>
+                <p class="text-xs text-slate-400 uppercase tracking-widest mt-4">Ronde Terakhir</p>
+                <p id="final-level" class="text-2xl font-bold text-yellow-400">1</p>
+            </div>
+
+            <!-- Pilihan Kembali ke Menu -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="restart-btn" class="px-8 py-4 bg-gradient-to-r from-[#ff0844] to-[#ffb199] text-white font-retro text-xs rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all pointer-events-auto">
+                    COBA LAGI
+                </button>
+                <button id="menu-btn-over" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-retro text-xs rounded-lg border border-slate-600 shadow-lg hover:scale-105 active:scale-95 transition-all pointer-events-auto">
+                    MENU UTAMA
+                </button>
+            </div>
+        </div>
+
+        <!-- Skrin Menang (Victory Screen) -->
+        <div id="victory-screen" class="absolute inset-0 bg-black/95 flex flex-col justify-center items-center p-6 z-20 text-center hidden pointer-events-none">
+            <h2 class="text-3xl md:text-5xl font-retro text-yellow-400 mb-2 tracking-widest animate-bounce">MISI BERHASIL!</h2>
+            <p class="text-slate-300 mb-8 text-sm md:text-base max-w-lg px-4">Luar biasa! Anda berhasil menguasai ruang angkasa yang luas ini, menghancurkan Pesawat Raja, dan menyelamatkan seluruh sistem Galaksi!</p>
+
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 mb-8 w-80">
+                <p class="text-xs text-slate-400 uppercase tracking-widest">Skor Akhir Agung</p>
+                <p id="victory-score" class="text-4xl font-bold text-green-400 neon-text-cyan my-1">0</p>
+                <p class="text-xs text-slate-400 uppercase tracking-widest mt-4">Pangkat Kehormatan</p>
+                <p class="text-lg font-bold text-yellow-400 tracking-wide">PAHLAWAN BESAR GALAKSI ⭐</p>
+            </div>
+
+            <!-- Pilihan Kembali ke Menu -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="victory-restart-btn" class="px-8 py-4 bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-black font-retro text-xs rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all neon-border pointer-events-auto">
+                    MAIN LAGI
+                </button>
+                <button id="menu-btn-victory" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-retro text-xs rounded-lg border border-slate-600 shadow-lg hover:scale-105 active:scale-95 transition-all pointer-events-auto">
+                    MENU UTAMA
+                </button>
+            </div>
+        </div>
+
+        <!-- Arahan Kawalan Mudah Alih -->
+        <div id="mobile-instructions" class="absolute bottom-4 left-0 right-0 text-center text-[10px] text-slate-500 pointer-events-none md:hidden animate-fade">
+            Seret layar ke semua arah untuk terbang bebas di luar angkasa
+        </div>
+    </div>
+
+    <!-- Script Logik Permainan -->
+    <script>
+        // --- SETUP AUDIO (Web Audio API) ---
+        let audioCtx = null; // Lazy-init untuk menghindari error autoplay browser
+        let isMuted = false;
+
+        // State kontrol untuk Musik Latar Belakang (BGM)
+        let bgmInterval = null;
+        let bgmStep = 0;
+        
+        // Alunan synth bass retro space cepat untuk pertempuran
+        const bgmNotesInGame = [
+            110, 0, 110, 130, 0, 130, 110, 146,
+            146, 0, 146, 165, 0, 165, 146, 110
+        ];
+
+        // Alunan misterius, lambat, dan megah untuk Start Screen
+        const bgmNotesMenu = [
+            110, 0, 0, 0, 130, 0, 0, 0,
+            146, 0, 0, 0, 130, 0, 165, 0
+        ];
+
+        // BARU: KUMPULAN PERTANYAAN KHUSUS MATA PELAJARAN BAHASA INGGRIS UNTUK RONDE 5 & 10
+        const quizPool = {
+            round5: [
+                {
+                    title: "ENGLISH QUIZ - ROUND 5",
+                    question: "What is the past tense of the verb 'go'?",
+                    options: [
+                        { text: "Goes", correct: false },
+                        { text: "Went", correct: true },
+                        { text: "Gone", correct: false },
+                        { text: "Going", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH QUIZ - ROUND 5",
+                    question: "Complete the sentence: 'She ___ her homework yesterday evening.'",
+                    options: [
+                        { text: "does", correct: false },
+                        { text: "doing", correct: false },
+                        { text: "did", correct: true },
+                        { text: "done", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH QUIZ - ROUND 5",
+                    question: "What is the synonym of the word 'large'?",
+                    options: [
+                        { text: "Tiny", correct: false },
+                        { text: "Big", correct: true },
+                        { text: "Short", correct: false },
+                        { text: "Narrow", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH QUIZ - ROUND 5",
+                    question: "Which word is a noun?",
+                    options: [
+                        { text: "Beautiful", correct: false },
+                        { text: "Fly", correct: false },
+                        { text: "Quickly", correct: false },
+                        { text: "Galaxy", correct: true }
+                    ]
+                },
+                {
+                    title: "ENGLISH QUIZ - ROUND 5",
+                    question: "Choose the correct pronoun: '___ is my best friend in the cockpit.'",
+                    options: [
+                        { text: "Him", correct: false },
+                        { text: "He", correct: true },
+                        { text: "Them", correct: false },
+                        { text: "Us", correct: false }
+                    ]
+                }
+            ],
+            round10: [
+                {
+                    title: "ENGLISH ADVANCED - ROUND 10",
+                    question: "Identify the adjective in this sentence: 'The stealthy F-22 Raptor flew silently.'",
+                    options: [
+                        { text: "F-22", correct: false },
+                        { text: "stealthy", correct: true },
+                        { text: "flew", correct: false },
+                        { text: "silently", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH ADVANCED - ROUND 10",
+                    question: "Which of these is the antonym of the word 'brave'?",
+                    options: [
+                        { text: "Bold", correct: false },
+                        { text: "Strong", correct: false },
+                        { text: "Cowardly", correct: true },
+                        { text: "Fearless", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH ADVANCED - ROUND 10",
+                    question: "Complete the sentence: 'If I ___ a space pilot, I would travel across the universe.'",
+                    options: [
+                        { text: "am", correct: false },
+                        { text: "was", correct: false },
+                        { text: "were", correct: true },
+                        { text: "will be", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH ADVANCED - ROUND 10",
+                    question: "What is the superlative form of the adjective 'good'?",
+                    options: [
+                        { text: "Better", correct: false },
+                        { text: "Best", correct: true },
+                        { text: "Goodest", correct: false },
+                        { text: "More good", correct: false }
+                    ]
+                },
+                {
+                    title: "ENGLISH ADVANCED - ROUND 10",
+                    question: "Choose the sentence with correct punctuation:",
+                    options: [
+                        { text: "Wow, that is a massive asteroid!", correct: true },
+                        { text: "Wow that is a massive asteroid", correct: false },
+                        { text: "wow, that, is a massive asteroid.", correct: false },
+                        { text: "Wow! that is a massive asteroid?", correct: false }
+                    ]
+                }
+            ]
+        };
+
+        // State kuis aktif
+        let isQuizActive = false;
+        let currentQuizType = null; // 'round5' atau 'round10'
+        let pendingNextLevel = 1; // Menyimpan ronde tujuan setelah menjawab kuis
+
+        // Fungsi inisialisasi paksa audio untuk mencegah kebijakan keamanan browser
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Fungsi memutar baris lagu BGM dinamis (Mendukung Menu Utama & Gameplay)
+        function startBGM(type = 'game') {
+            stopBGM();
+            bgmStep = 0;
+            const notes = (type === 'menu') ? bgmNotesMenu : bgmNotesInGame;
+            const intervalTime = (type === 'menu') ? 350 : 220; 
+
+            bgmInterval = setInterval(() => {
+                if (isMuted || isCountdownActive || isQuizActive) return;
+                if (type === 'game' && !gameRunning) return;
+                if (type === 'menu' && gameRunning) return;
+
+                const freq = notes[bgmStep % notes.length];
+                if (freq > 0) {
+                    playBGMNote(freq, type);
+                }
+                bgmStep++;
+            }, intervalTime);
+        }
+
+        // Fungsi menghentikan total BGM
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        // Fungsi mensintesis satu ketukan melodi BGM
+        function playBGMNote(freq, type = 'game') {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.type = (type === 'menu') ? 'sine' : 'sawtooth'; 
+            osc.frequency.setValueAtTime(freq / 2, audioCtx.currentTime);
+            
+            const volume = (type === 'menu') ? 0.05 : 0.04;
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            initAudio();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'laser') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'boss-laser') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'explosion') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.45);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            } else if (type === 'powerup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.linearRampToValueAtTime(700, now + 0.1);
+                osc.frequency.linearRampToValueAtTime(1050, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'hurt') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'countdown-tick') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'countdown-go') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+        }
+
+        // --- GLOBAL GAME STATE & CONSTANTS ---
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let gameRunning = false;
+        let score = 0;
+        let highScore = 0; 
+        let level = 1; 
+        let lives = 3;
+        let keys = {};
+        let touchX = null;
+        let touchY = null; 
+        let isMobile = false;
+
+        let player;
+        // Menyimpan kedua jet bodyguard di sisi kiri dan kanan
+        let bodyguardLeft; 
+        let bodyguardRight; 
+        let lasers = [];
+        let enemies = [];
+        let enemyLasers = []; 
+        let particles = [];
+        let powerups = [];
+        let stars = [];
+        let boss = null; 
+        let bossDefeated = false;
+
+        // Sistem State Hitungan Mundur (Countdown)
+        let isCountdownActive = false;
+        let countdownVal = 3;
+
+        // State Tema Arena Aktif
+        let activeTheme = 'space'; 
+
+        // Menyimpan meteor hiasan yang bergerak lambat di layar menu
+        let decorativeMeteors = [];
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 2 + 0.5
+                });
+            }
+        }
+
+        // Inisialisasi meteor hiasan khusus untuk menghidupkan Layar Utama
+        function initDecorativeMeteors() {
+            decorativeMeteors = [];
+            for (let i = 0; i < 4; i++) {
+                decorativeMeteors.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height * 0.7),
+                    width: Math.random() * 20 + 20,
+                    speedX: (Math.random() - 0.5) * 0.8,
+                    speedY: Math.random() * 0.4 + 0.2,
+                    angle: Math.random() * Math.PI,
+                    rotSpeed: (Math.random() - 0.5) * 0.01,
+                    color: '#ff4500'
+                });
+            }
+        }
+
+        // Fungsi pembantu baru untuk toggle screen overlay secara aman (anti-freeze)
+        function toggleOverlay(id, show) {
+            const el = document.getElementById(id);
+            if (show) {
+                el.classList.remove('hidden');
+                el.style.pointerEvents = 'auto';
+            } else {
+                el.classList.add('hidden');
+                el.style.pointerEvents = 'none';
+            }
+        }
+
+        // Fungsi kontrol pemilihan tema dari layar utama
+        function setTheme(theme) {
+            initAudio();
+            activeTheme = theme;
+            const themes = ['space', 'daytime', 'sunset', 'cyber'];
+            themes.forEach(t => {
+                const btn = document.getElementById('theme-' + t);
+                if (t === theme) {
+                    btn.className = "py-2 px-3 rounded-lg border bg-slate-900 border-[#00f2fe] text-[#00f2fe] hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(0,242,254,0.4)] scale-105";
+                } else {
+                    btn.className = "py-2 px-3 rounded-lg border bg-slate-950 border-slate-700 text-slate-400 hover:bg-slate-900 transition-all flex items-center justify-center gap-1.5";
+                }
+            });
+            playSound('powerup');
+            if (!isMuted && !gameRunning) {
+                startBGM('menu');
+            }
+        }
+
+        // --- CLASS PLAYER (F-22 Raptor Jet Tempur Militer Nyata) ---
+        class Player {
+            constructor() {
+                this.width = 44; 
+                this.height = 46; 
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 110; 
+                this.speed = 13; 
+                this.shootCooldown = 0;
+                this.weaponLevel = 1;
+                this.isInvulnerable = 0;
+            }
+
+            draw() {
+                ctx.save();
+                
+                if (this.isInvulnerable > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                    ctx.globalAlpha = 0.3;
+                }
+
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                
+                // Efek glow halus pada metal pesawat
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00f2fe';
+
+                // 1. Api Afterburner Mesin Ganda (Twin Thrusters) F-22 Raptor
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff003c';
+                ctx.fillStyle = Math.random() > 0.5 ? '#ff4500' : '#ff003c';
+                // Mesin Kiri
+                ctx.beginPath();
+                ctx.moveTo(-6, this.height / 2.5);
+                ctx.lineTo(-3, this.height / 2.5 + (Math.random() * 14 + 6));
+                ctx.lineTo(0, this.height / 2.5);
+                ctx.closePath();
+                ctx.fill();
+                // Mesin Kanan
+                ctx.beginPath();
+                ctx.moveTo(0, this.height / 2.5);
+                ctx.lineTo(3, this.height / 2.5 + (Math.random() * 14 + 6));
+                ctx.lineTo(6, this.height / 2.5);
+                ctx.closePath();
+                ctx.fill();
+
+                // Kembalikan shadow ke mode bodi jet tempur militer
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+
+                // 2. Sayap Belakang Kembar (Twin Stabilizers F-22) - Sayap Ekor
+                ctx.fillStyle = '#4a5568'; // Stealth Grey Gelap
+                ctx.beginPath();
+                ctx.moveTo(-10, this.height / 4);
+                ctx.lineTo(-this.width / 2.5, this.height / 2);
+                ctx.lineTo(-this.width / 2.8, this.height / 2);
+                ctx.lineTo(-6, this.height / 4);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(10, this.height / 4);
+                ctx.lineTo(this.width / 2.5, this.height / 2);
+                ctx.lineTo(this.width / 2.8, this.height / 2);
+                ctx.lineTo(6, this.height / 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // 3. Sayap Utama Delta F-22 Raptor (Swept Wings)
+                ctx.fillStyle = '#718096'; // Stealth Grey Sedang
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 4); // Pangkal sayap depan
+                ctx.lineTo(this.width / 2, this.height / 4);  // Ujung sayap kanan
+                ctx.lineTo(this.width / 4, this.height / 3);  // Sudut sayap dalam kanan
+                ctx.lineTo(-this.width / 4, this.height / 3); // Sudut sayap dalam kiri
+                ctx.lineTo(-this.width / 2, this.height / 4); // Ujung sayap kiri
+                ctx.closePath();
+                ctx.fill();
+
+                // Detail Lis Sayap Depan (Leading Edge)
+                ctx.fillStyle = '#4a5568';
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 4);
+                ctx.lineTo(this.width / 2, this.height / 4);
+                ctx.lineTo(this.width / 2.3, this.height / 4);
+                ctx.lineTo(0, -this.height / 5);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 4);
+                ctx.lineTo(-this.width / 2, this.height / 4);
+                ctx.lineTo(-this.width / 2.3, this.height / 4);
+                ctx.lineTo(0, -this.height / 5);
+                ctx.closePath();
+                ctx.fill();
+
+                // 4. Badan Utama / Fuselage F-22 Raptor
+                ctx.fillStyle = '#a0aec0'; // Stealth Grey Terang
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 2); // Hidung pesawat runcing
+                ctx.lineTo(4, -this.height / 4);
+                ctx.lineTo(6, this.height / 3);
+                ctx.lineTo(-6, this.height / 3);
+                ctx.lineTo(-4, -this.height / 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // Air Intakes (Saluran udara kiri & kanan kokpit)
+                ctx.fillStyle = '#2d3748'; // Hitam karbon
+                ctx.fillRect(-6, -this.height / 6, 2, this.height / 5);
+                ctx.fillRect(4, -this.height / 6, 2, this.height / 5);
+
+                // 5. Kaca Kokpit Berlapis Emas Anti-Radar F-22 (Stealth Gold Canopy)
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.85)'; // Gold tint
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 3);
+                ctx.lineTo(2.5, -this.height / 6);
+                ctx.lineTo(2, 0);
+                ctx.lineTo(-2, 0);
+                ctx.lineTo(-2.5, -this.height / 6);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            update() {
+                // Jangan terima input gerak jika hitungan mundur atau kuis sedang aktif
+                if (isCountdownActive || isQuizActive) return;
+
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                    this.x -= this.speed;
+                }
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                    this.x += this.speed;
+                }
+
+                if (keys['ArrowUp'] || keys['w'] || keys['W']) {
+                    this.y -= this.speed;
+                }
+                if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                    this.y += this.speed;
+                }
+
+                if (touchX !== null) {
+                    const targetX = touchX - this.width / 2;
+                    this.x += (targetX - this.x) * 0.45;
+                }
+                if (touchY !== null) {
+                    const targetY = touchY - this.height / 2;
+                    this.y += (targetY - this.y) * 0.45;
+                }
+
+                if (this.x < 0) this.x = 0;
+                if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
+
+                if (this.y < canvas.height * 0.25) this.y = canvas.height * 0.25; 
+                if (this.y > canvas.height - this.height - 10) this.y = canvas.height - this.height - 10;
+
+                if (this.shootCooldown > 0) this.shootCooldown--;
+                if (this.isInvulnerable > 0) this.isInvulnerable--;
+
+                if (isMobile) {
+                    if (this.shootCooldown === 0) {
+                        this.shoot();
+                    }
+                } else if (keys[' '] && this.shootCooldown === 0) {
+                    this.shoot();
+                }
+            }
+
+            shoot() {
+                playSound('laser');
+                const coolTime = 6; 
+
+                // Ditambahkan peningkatan menembak melaju cepat hingga 5 baris tembakan
+                if (this.weaponLevel === 1) {
+                    lasers.push(new Laser(this.x + this.width / 2, this.y, 0, -12, 10, 8, '#00f2fe'));
+                } else if (this.weaponLevel === 2) {
+                    lasers.push(new Laser(this.x + 5, this.y + 10, 0, -13, 15, 10, '#ffeb3b'));
+                    lasers.push(new Laser(this.x + this.width - 5, this.y + 10, 0, -13, 15, 10, '#ffeb3b'));
+                } else if (this.weaponLevel === 3) {
+                    lasers.push(new Laser(this.x + this.width / 2, this.y, 0, -15, 30, 14, '#ff0844'));
+                    lasers.push(new Laser(this.x, this.y + 10, -3, -14, 25, 12, '#ff0844'));
+                    lasers.push(new Laser(this.x + this.width, this.y + 10, 3, -14, 25, 12, '#ff0844'));
+                } else if (this.weaponLevel === 4) {
+                    // Tembakan 4 baris yang meluncur lebar dan mematikan
+                    lasers.push(new Laser(this.x + 5, this.y + 10, -1.5, -14, 25, 12, '#e0c3fc'));
+                    lasers.push(new Laser(this.x + this.width - 5, this.y + 10, 1.5, -14, 25, 12, '#e0c3fc'));
+                    lasers.push(new Laser(this.x - 5, this.y + 12, -4, -13, 20, 10, '#e0c3fc'));
+                    lasers.push(new Laser(this.x + this.width + 5, this.y + 12, 4, -13, 20, 10, '#e0c3fc'));
+                } else {
+                    // Tembakan 5 baris ultra (Puncak Kekuatan)
+                    lasers.push(new Laser(this.x + this.width / 2, this.y, 0, -16, 35, 15, '#00ffcc'));
+                    lasers.push(new Laser(this.x + 5, this.y + 10, -2, -15, 30, 13, '#00ffcc'));
+                    lasers.push(new Laser(this.x + this.width - 5, this.y + 10, 2, -15, 30, 13, '#00ffcc'));
+                    lasers.push(new Laser(this.x - 8, this.y + 14, -4.5, -14, 25, 11, '#00ffcc'));
+                    lasers.push(new Laser(this.x + this.width + 8, this.y + 14, 4.5, -14, 25, 11, '#00ffcc'));
+                }
+
+                this.shootCooldown = coolTime;
+            }
+        }
+
+        // --- CLASS BODYGUARD (Pesawat Pengawal Setia Berbentuk F-22 Mini) ---
+        class Bodyguard {
+            // Menerima parameter side untuk penempatan sisi kiri/kanan
+            constructor(player, side) {
+                this.player = player;
+                this.width = 24;
+                this.height = 26;
+                this.side = side;
+                // Atur offset X secara asimetris: kiri (-36) atau kanan (36)
+                this.offsetX = (side === 'left') ? -36 : 36; 
+                this.offsetY = 16;
+                this.x = player.x + this.offsetX;
+                this.y = player.y + this.offsetY;
+                this.shootCooldown = 0;
+                this.speed = 0.25; // Kecepatan interpolasi mengikuti pesawat utama
+            }
+
+            draw() {
+                ctx.save();
+                
+                // Berkedip jika pesawat utama sedang kebal
+                if (this.player.isInvulnerable > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                    ctx.globalAlpha = 0.3;
+                }
+
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                
+                // Efek kilau cyan bersahabat
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#00f2fe';
+
+                // Api Pendorong Mini
+                ctx.fillStyle = '#ff5100';
+                ctx.fillRect(-2, this.height / 2.6, 4, 4 + Math.random() * 6);
+
+                // Sayap Delta Mini F-22
+                ctx.fillStyle = '#4a5568';
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 4);
+                ctx.lineTo(this.width / 2, this.height / 4);
+                ctx.lineTo(-this.width / 2, this.height / 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // Badan Utama Mini F-22
+                ctx.fillStyle = '#00f2fe'; // Berwarna cyan neon agar terlihat seperti aliansi kita
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 2);
+                ctx.lineTo(2, -this.height / 4);
+                ctx.lineTo(3, this.height / 3);
+                ctx.lineTo(-3, this.height / 3);
+                ctx.lineTo(-2, -this.height / 4);
+                ctx.closePath();
+                ctx.fill();
+
+                // Kaca kokpit mini
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, -this.height / 6, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            update() {
+                if (isCountdownActive || isQuizActive) return;
+
+                // Mengikuti pemain dengan gerakan halus (lerping)
+                const targetX = this.player.x + this.offsetX;
+                const targetY = this.player.y + this.offsetY;
+                this.x += (targetX - this.x) * this.speed;
+                this.y += (targetY - this.y) * this.speed;
+
+                // Mengelola jeda tembakan otomatis bodyguard
+                if (this.shootCooldown > 0) {
+                    this.shootCooldown--;
+                } else {
+                    this.shoot();
+                }
+            }
+
+            shoot() {
+                if (!gameRunning) return;
+                // Menembak laser bantuan lurus ke depan secara otomatis
+                lasers.push(new Laser(this.x + this.width / 2, this.y, 0, -12, 6, 6, '#00f2fe'));
+                this.shootCooldown = 20; // Menembak terus-menerus setiap 20 frame
+            }
+        }
+
+        // --- CLASS ENEMY / METEOR (Semua musuh sejenis jet tempur F-22 siber yang mirip milik Anda) ---
+        class Enemy {
+            constructor() {
+                this.width = Math.random() * 30 + 25;
+                this.height = this.width;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = -this.height;
+                
+                // Meningkatkan kecepatan musuh secara drastis
+                const speedFactor = 1 + (level * 0.16); 
+                this.speed = (Math.random() * 3 + 3.0) * speedFactor; 
+                
+                this.angle = 0;
+                this.rotSpeed = (Math.random() - 0.5) * 0.05;
+
+                // Memampukan musuh menembak lebih aktif/cepat
+                this.shootCooldown = Math.floor(Math.random() * 70) + 40;
+
+                const rand = Math.random();
+                if (rand > 0.85) {
+                    this.type = 'elite'; // F-22 Elite Stealth berwarna ungu
+                    this.hp = 8; 
+                    this.color = '#e0c3fc'; // Warna laser dan pendaran ungu
+                    this.scoreVal = 50;
+                } else if (rand > 0.6) {
+                    this.type = 'fast'; // F-22 Interceptor cepat berwarna merah
+                    this.hp = 3;
+                    this.speed *= 1.6; // Jet cepat melaju jauh lebih kencang
+                    this.color = '#ff9a9e'; // Warna laser dan pendaran merah-pink
+                    this.scoreVal = 30;
+                } else {
+                    this.type = 'standard'; // Batu Meteor Karbon Berapi Realistis (tetap meteor)
+                    this.hp = 2;
+                    this.color = '#ff4500'; 
+                    this.scoreVal = 10;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                
+                if (this.type === 'standard') {
+                    // Efek ekor api (flame trail) meteor membara realistis
+                    ctx.save();
+                    ctx.shadowBlur = 18;
+                    ctx.shadowColor = '#ff5100';
+                    
+                    let trailGrad = ctx.createLinearGradient(0, this.height/2, 0, -this.height * 1.4);
+                    trailGrad.addColorStop(0, 'rgba(255, 81, 0, 0.95)');
+                    trailGrad.addColorStop(0.3, 'rgba(255, 145, 0, 0.6)');
+                    trailGrad.addColorStop(0.7, 'rgba(255, 200, 0, 0.2)');
+                    trailGrad.addColorStop(1, 'rgba(255, 230, 0, 0)');
+                    
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.angle);
+                    
+                    ctx.fillStyle = trailGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width / 2.3, 0);
+                    ctx.lineTo(0, -this.height * 1.5);
+                    ctx.lineTo(this.width / 2.3, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Batu Meteor Terjal Realistis dengan Detail Kawah & Bayangan internal
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.angle);
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#e65c00';
+                    
+                    // Gradien batuan terjal (Pencahayaan atas-bawah)
+                    let rockGrad = ctx.createRadialGradient(-this.width/6, -this.height/6, 2, 0, 0, this.width/1.8);
+                    rockGrad.addColorStop(0, '#5a493a'); 
+                    rockGrad.addColorStop(0.6, '#36291e'); 
+                    rockGrad.addColorStop(1, '#1b120c'); 
+                    
+                    ctx.fillStyle = rockGrad;
+                    ctx.strokeStyle = '#231811';
+                    ctx.lineWidth = 1.5;
+                    
+                    // Gambar batu asimetris tak beraturan
+                    ctx.beginPath();
+                    const numPoints = 10; 
+                    const points = [];
+                    for (let i = 0; i < numPoints; i++) {
+                        const angle = (i / numPoints) * Math.PI * 2;
+                        const seed = Math.sin(i * 1.7) * Math.cos(i * 2.3);
+                        const offset = (seed * this.width / 6.5) + (this.width / 2.1);
+                        const px = Math.cos(angle) * offset;
+                        const py = Math.sin(angle) * offset;
+                        points.push({x: px, y: py});
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Menggambar Kawah (Craters) Realistis di Permukaan Meteor
+                    ctx.shadowBlur = 0; 
+                    points.forEach((pt, index) => {
+                        if (index % 3 === 0) {
+                            const cx = pt.x * 0.4;
+                            const cy = pt.y * 0.4;
+                            const cRadius = this.width / 7;
+                            
+                            ctx.fillStyle = '#140c06'; 
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, cRadius, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.strokeStyle = '#ff7700';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, cRadius, Math.PI * 0.25, Math.PI * 1.25);
+                            ctx.stroke();
+                        }
+                    });
+                    ctx.restore();
+
+                } else {
+                    // Pesawat Musuh memiliki sasis visual F-22 RAPTOR serupa milik Anda!
+                    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                    ctx.rotate(this.angle);
+
+                    // Bayangan pendaran sesuai tipe musuh
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = this.color;
+
+                    // 1. Api Afterburner Ganda mengarah ke atas (karena terbang ke bawah)
+                    ctx.fillStyle = '#ff3300';
+                    ctx.beginPath();
+                    ctx.moveTo(-4, -this.height / 2.5);
+                    ctx.lineTo(-2, -this.height / 2.5 - (Math.random() * 10 + 4));
+                    ctx.lineTo(0, -this.height / 2.5);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.height / 2.5);
+                    ctx.lineTo(2, -this.height / 2.5 - (Math.random() * 10 + 4));
+                    ctx.lineTo(4, -this.height / 2.5);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 2. Sayap Ekor Belakang F-22 Musuh
+                    ctx.fillStyle = '#2d3748';
+                    ctx.beginPath();
+                    ctx.moveTo(-6, -this.height / 4);
+                    ctx.lineTo(-this.width / 2.5, -this.height / 2);
+                    ctx.lineTo(-6, -this.height / 5);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.moveTo(6, -this.height / 4);
+                    ctx.lineTo(this.width / 2.5, -this.height / 2);
+                    ctx.lineTo(6, -this.height / 5);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 3. Sayap Utama Delta F-22 (Mengarah ke bawah)
+                    ctx.fillStyle = this.type === 'elite' ? '#2e1a47' : '#5a1f21'; // Elite: Ungu Gelap, Fast: Merah Gelap
+                    ctx.beginPath();
+                    ctx.moveTo(0, this.height / 4); 
+                    ctx.lineTo(this.width / 2, -this.height / 4);  
+                    ctx.lineTo(this.width / 4, -this.height / 3);  
+                    ctx.lineTo(-this.width / 4, -this.height / 3); 
+                    ctx.lineTo(-this.width / 2, -this.height / 4); 
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // 4. Badan Utama Jet F-22 Musuh
+                    ctx.fillStyle = this.type === 'elite' ? '#4c3a6b' : '#9b2c2c'; // Elite: Ungu, Fast: Merah Taktis
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, this.height / 2); // Hidung depan mengarah kebawah
+                    ctx.lineTo(4, this.height / 4);
+                    ctx.lineTo(6, -this.height / 3);
+                    ctx.lineTo(-6, -this.height / 3);
+                    ctx.lineTo(-4, this.height / 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // 5. Kaca Kokpit Reflektif Musuh
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.moveTo(0, this.height / 3);
+                    ctx.lineTo(2, 0);
+                    ctx.lineTo(-2, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            update() {
+                this.y += this.speed;
+
+                // Pesawat musuh (elite & fast) lari lurus saja tanpa berputar!
+                // Hanya jenis standard (batu meteor) yang sudutnya (angle) berputar rotSpeed.
+                if (this.type === 'standard') {
+                    this.angle += this.rotSpeed;
+                } else {
+                    this.angle = 0; // Tetap lurus menghadap bawah/pemain
+                }
+
+                if (this.type !== 'standard' && this.y > 40 && this.y < canvas.height - 180) {
+                    if (this.shootCooldown > 0) {
+                        this.shootCooldown--;
+                    } else {
+                        this.shoot();
+                        // Reset jeda tembakan musuh agar tetap aktif dan konsisten berbalas
+                        this.shootCooldown = Math.floor(Math.random() * 90) + 70;
+                    }
+                }
+            }
+
+            // Logika tembakan balasan dari kapal musuh
+            shoot() {
+                if (!gameRunning) return;
+                playSound('boss-laser'); 
+                if (this.type === 'fast') {
+                    enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, 0, 5.5));
+                } else if (this.type === 'elite') {
+                    enemyLasers.push(new EnemyLaser(this.x + 5, this.y + this.height, -1, 4.8));
+                    enemyLasers.push(new EnemyLaser(this.x + this.width - 5, this.y + this.height, 1, 4.8));
+                }
+            }
+        }
+
+        // --- CLASS PESAWAT RAJA / BOSS (Giga Cruiser Tempur Udara Realistis Raksasa) ---
+        class Boss {
+            constructor() {
+                this.width = 160; 
+                this.height = 95; // Sedikit lebih tinggi agar proporsi kokoh nyata
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = -this.height;
+                this.targetY = 80; 
+                this.speedX = 3.6; 
+                // HP Utama ditingkatkan menjadi 3000 agar sangat tangguh dan menantang!
+                this.maxHp = 3000; 
+                this.hp = this.maxHp;
+                this.shootCooldown = 0;
+                this.color = '#334155'; // Metal baja taktis gelap
+                this.stateTime = 0;
+            }
+
+            draw() {
+                ctx.save();
+                
+                // Shadow halus lambung kapal induk raksasa
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+
+                // 1. Api Propulsi Turbin Raksasa Ganda di Belakang Sayap Raja
+                ctx.fillStyle = Math.random() > 0.5 ? '#ff3c00' : '#ffa200';
+                // Knalpot Mesin Utama Tengah
+                ctx.fillRect(-this.width / 8, -this.height / 1.8, this.width / 4, 8 + Math.random() * 10);
+                // Mesin Kiri
+                ctx.fillRect(-this.width / 3, -this.height / 2.2, this.width / 12, 6 + Math.random() * 8);
+                // Mesin Kanan
+                ctx.fillRect(this.width / 3 - this.width / 12, -this.height / 2.2, this.width / 12, 6 + Math.random() * 8);
+
+                // 2. Lambung Utama Baja Padat Giga Cruiser (Berwarna kemerahan jika dalam Enraged Phase)
+                if (this.hp < this.maxHp / 2 && Math.floor(Date.now() / 200) % 2 === 0) {
+                    ctx.fillStyle = '#4c0519'; // Merah menyala menandakan mode marah
+                } else {
+                    ctx.fillStyle = '#1e293b'; // Warna abu baja militer pekat biasa
+                }
+                ctx.strokeStyle = '#475569'; // Garis panel baja luar
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(0, this.height / 2); // Moncong dek depan runcing
+                ctx.lineTo(this.width / 2, -this.height / 4); // Sayap delta kanan
+                ctx.lineTo(this.width / 2.5, -this.height / 2); // Ujung sayap belakang kanan
+                ctx.lineTo(-this.width / 2.5, -this.height / 2); // Ujung sayap belakang kiri
+                ctx.lineTo(-this.width / 2, -this.height / 4); // Sayap delta kiri
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // 3. Detail Panel Sensor & Struktur Komando Udara di Bagian Atas
+                ctx.fillStyle = '#334155'; // Lapisan deck kedua
+                ctx.fillRect(-this.width / 6, -this.height / 4, this.width / 3, this.height / 2.5);
+                ctx.strokeStyle = '#64748b';
+                ctx.strokeRect(-this.width / 6, -this.height / 4, this.width / 3, this.height / 2.5);
+
+                // Kokpit Jembatan Komando Utama Berlapis Baja Emas
+                ctx.fillStyle = 'rgba(212, 175, 55, 0.9)';
+                ctx.beginPath();
+                ctx.moveTo(0, this.height / 6);
+                ctx.lineTo(this.width / 12, 0);
+                ctx.lineTo(-this.width / 12, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // 4. Barisan Menara Meriam (Turrets) Kiri-Kanan Menembak Senjata Plasma
+                ctx.fillStyle = '#00f2fe'; // Meriam energi pengawal siber
+                ctx.beginPath();
+                ctx.arc(-this.width / 3.5, 5, 8, 0, Math.PI * 2);
+                ctx.arc(this.width / 3.5, 5, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            update() {
+                this.stateTime++;
+
+                // Pergerakan masuk ke arena di awal
+                if (this.y < this.targetY) {
+                    this.y += 1.5;
+                } else {
+                    // Jika HP di bawah 50%, Boss memasuki Fase 2 (Enraged Phase)
+                    // Kecepatannya bertambah cepat dari 3.6 menjadi 5.4 untuk bermanuver lincah!
+                    const currentSpeed = (this.hp < this.maxHp / 2) ? 5.4 : 3.6;
+                    
+                    // Jaga arah gerakan dengan mengalikan tanda matematika
+                    this.x += (this.speedX > 0 ? 1 : -1) * currentSpeed;
+
+                    if (this.x <= 20) {
+                        this.speedX = Math.abs(this.speedX);
+                    } else if (this.x >= canvas.width - this.width - 20) {
+                        this.speedX = -Math.abs(this.speedX);
+                    }
+                }
+
+                if (this.shootCooldown > 0) {
+                    this.shootCooldown--;
+                } else if (this.y >= this.targetY) {
+                    this.shoot();
+                    // Jeda tembak dipercepat jika Boss berada dalam Enraged Phase
+                    const defaultCooldown = (this.hp < this.maxHp / 2) ? 25 : 35;
+                    this.shootCooldown = Math.floor(Math.random() * 15) + defaultCooldown; 
+                }
+            }
+
+            shoot() {
+                playSound('boss-laser');
+                // Tembakan lurus samping default
+                enemyLasers.push(new EnemyLaser(this.x + this.width / 4, this.y + this.height, 0, 4.5));
+                enemyLasers.push(new EnemyLaser(this.x + (this.width * 3) / 4, this.y + this.height, 0, 4.5));
+
+                // Pola menyebar 4 arah dari deck utama setiap rentang waktu tertentu
+                if (this.stateTime % 100 < 40) {
+                    enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, -3, 4));
+                    enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, -1, 4.2));
+                    enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, 1, 4.2));
+                    enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, 3, 4));
+                }
+
+                // Pola Fase Kemarahan (Enraged Phase - HP < 50%)
+                // Raja menembakkan 5 peluru sekaligus secara melingkar setiap 80 frame
+                if (this.hp < this.maxHp / 2) {
+                    if (this.stateTime % 80 === 0) {
+                        for (let angle = -2; angle <= 2; angle += 1) {
+                            // Menembak ke arah bawah dengan sudut menyebar (vx = angle * 1.5)
+                            enemyLasers.push(new EnemyLaser(this.x + this.width / 2, this.y + this.height, angle * 1.5, 4.8));
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- CLASS POWERUP ---
+        class Powerup {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 25;
+                this.height = 25;
+                this.speed = 2;
+                
+                this.type = Math.random() > 0.75 ? 'heal' : 'weapon';
+                this.color = this.type === 'heal' ? '#4caf50' : '#ffeb3b';
+            }
+
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(Date.now() * 0.005);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 2);
+                ctx.lineTo(this.width / 2, 0);
+                ctx.lineTo(0, this.height / 2);
+                ctx.lineTo(-this.width / 2, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 12px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type === 'heal' ? '♥' : 'W', 0, 0);
+
+                ctx.restore();
+            }
+
+            update() {
+                if (isQuizActive) return; // Jangan gerak jika kuis aktif
+                this.y += this.speed;
+            }
+        }
+
+        // --- CLASS PARTICLE ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2; 
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                
+                this.alpha = 1;
+                this.life = Math.random() * 25 + 20;
+                this.decay = 1 / this.life;
+                this.radius = Math.random() * 3.5 + 1;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+        }
+
+        // --- GAME SYSTEM LOGIC ---
+
+        function spawnExplosion(x, y, color, scale = 1) {
+            playSound('explosion');
+            const count = Math.floor(20 * scale);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('level-display').innerText = level === 10 ? "FINAL" : level;
+            
+            const livesDiv = document.getElementById('lives-display');
+            livesDiv.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                livesDiv.innerHTML += `
+                    <svg class="w-6 h-6 text-red-500 fill-current drop-shadow-[0_0_4px_rgba(239,68,68,0.7)]" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                `;
+            }
+        }
+
+        // Fungsi untuk memicu Kuis Interaktif
+        function triggerQuiz(type) {
+            isQuizActive = true;
+            currentQuizType = type;
+            stopBGM(); // Hentikan musik sementara agar kuis fokus
+
+            const pool = quizPool[type];
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const data = pool[randomIndex];
+
+            document.getElementById('quiz-title').innerText = data.title;
+            document.getElementById('quiz-question').innerText = data.question;
+
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            document.getElementById('quiz-feedback').classList.add('hidden');
+
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 hover:border-[#00f2fe] rounded-xl text-sm md:text-base font-semibold transition-all duration-150 text-slate-200 text-left";
+                btn.innerText = `${String.fromCharCode(65 + idx)}. ${opt.text}`;
+                btn.addEventListener('click', () => submitAnswer(opt.correct));
+                optionsDiv.appendChild(btn);
+            });
+
+            toggleOverlay('quiz-screen', true);
+        }
+
+        // Evaluasi jawaban kuis
+        function submitAnswer(isCorrect) {
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.remove('hidden');
+
+            // Nonaktifkan tombol agar tidak bisa diklik dua kali
+            const buttons = document.querySelectorAll('#quiz-options button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                feedbackEl.className = "mt-6 text-sm font-semibold tracking-wide text-green-400 font-retro animate-pulse";
+                feedbackEl.innerText = "✓ ACCESS GRANTED! CONTINUING MISSION...";
+                playSound('powerup');
+                
+                setTimeout(() => {
+                    toggleOverlay('quiz-screen', false);
+                    isQuizActive = false;
+
+                    if (currentQuizType === 'round5') {
+                        // Lanjut ke ronde 6
+                        level = 6;
+                        updateHUD();
+                        startBGM('game');
+                    } else if (currentQuizType === 'round10') {
+                        // Kemenangan mutlak setelah mengalahkan Boss & menjawab kuis ronde 10
+                        winGame();
+                    }
+                }, 2000);
+            } else {
+                feedbackEl.className = "mt-6 text-sm font-semibold tracking-wide text-red-500 font-retro animate-bounce";
+                feedbackEl.innerText = "✗ WRONG! DETECTING COCKPIT MALFUNCTION...";
+                playSound('hurt');
+                
+                // Penalti: kurangi nyawa pemain
+                lives--;
+                updateHUD();
+
+                if (lives <= 0) {
+                    setTimeout(() => {
+                        toggleOverlay('quiz-screen', false);
+                        isQuizActive = false;
+                        endGame();
+                    }, 1500);
+                } else {
+                    // Beri kesempatan lagi setelah 1.5 detik
+                    setTimeout(() => {
+                        buttons.forEach(btn => btn.disabled = false);
+                        feedbackEl.classList.add('hidden');
+                    }, 1500);
+                }
+            }
+        }
+
+        // Game Loop Utama (Mengontrol animasi menu dan gameplay secara mulus)
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Mewarnai Latar Belakang Canvas Dinamis Berdasarkan Tema yang Dipilih
+            let bgGrad;
+            if (activeTheme === 'space') {
+                bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height, 10, canvas.width/2, canvas.height, canvas.height);
+                bgGrad.addColorStop(0, '#0c1033');
+                bgGrad.addColorStop(1, '#020208');
+            } else if (activeTheme === 'daytime') {
+                bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                bgGrad.addColorStop(0, '#56ccf2');
+                bgGrad.addColorStop(1, '#2f80ed');
+            } else if (activeTheme === 'sunset') {
+                bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                bgGrad.addColorStop(0, '#f12711');
+                bgGrad.addColorStop(1, '#f5af19');
+            } else if (activeTheme === 'cyber') {
+                bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                bgGrad.addColorStop(0, '#150030');
+                bgGrad.addColorStop(1, '#050010');
+            }
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Rendering Grid Efek 3D Khusus Tema Cyber Neon
+            if (activeTheme === 'cyber') {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 0, 127, 0.15)';
+                ctx.lineWidth = 1;
+                const horizon = canvas.height * 0.15;
+                for (let x = -canvas.width; x < canvas.width * 2; x += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width / 2, horizon);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                const timeShift = (Date.now() * 0.05) % 40;
+                for (let y = horizon + timeShift; y < canvas.height; y += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Gambar & Kelola Elemen Latar Belakang (Bintang / Awan / Pijar / Spark)
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = -20;
+                    star.x = Math.random() * canvas.width;
+                }
+
+                if (activeTheme === 'space') {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                    ctx.fillRect(star.x, star.y, star.size, star.size);
+                } else if (activeTheme === 'daytime') {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                    ctx.beginPath();
+                    const scale = star.size * 3.5;
+                    ctx.arc(star.x, star.y, scale, 0, Math.PI * 2);
+                    ctx.arc(star.x - scale * 0.7, star.y + scale * 0.2, scale * 0.7, 0, Math.PI * 2);
+                    ctx.arc(star.x + scale * 0.7, star.y + scale * 0.2, scale * 0.7, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                } else if (activeTheme === 'sunset') {
+                    ctx.save();
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#ffea00';
+                    ctx.fillStyle = 'rgba(255, 234, 0, 0.85)';
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size * 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                } else if (activeTheme === 'cyber') {
+                    ctx.save();
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#00f2fe';
+                    ctx.fillStyle = star.size > 1.2 ? '#00f2fe' : '#ff007f';
+                    ctx.fillRect(star.x, star.y, star.size, star.size * 2);
+                    ctx.restore();
+                }
+            });
+
+            // LOGIKA LAYAR MENU UTAMA
+            if (!gameRunning) {
+                // Perbarui & Gambar Meteor Hiasan di Layar Menu Utama agar terlihat bagus!
+                decorativeMeteors.forEach(met => {
+                    met.y += met.speedY;
+                    met.x += met.speedX;
+                    met.angle += met.rotSpeed;
+
+                    if (met.y > canvas.height + met.width) {
+                        met.y = -met.width;
+                        met.x = Math.random() * canvas.width;
+                    }
+                    if (met.x < -met.width || met.x > canvas.width + met.width) {
+                        met.speedX *= -1;
+                    }
+
+                    // Render Meteor Hiasan
+                    ctx.save();
+                    ctx.translate(met.x + met.width / 2, met.y + met.width / 2);
+                    ctx.rotate(met.angle);
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = met.color;
+                    ctx.fillStyle = '#3a2512';
+                    ctx.strokeStyle = met.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const numPoints = 8;
+                    for (let i = 0; i < numPoints; i++) {
+                        const angle = (i / numPoints) * Math.PI * 2;
+                        const offset = (Math.sin(i * 3) * met.width / 6) + (met.width / 2);
+                        const px = Math.cos(angle) * offset;
+                        const py = Math.sin(angle) * offset;
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            // LOGIKA UTAMA SINKRONISASI GAMEPLAY (HANYA BERJALAN JIKA gameRunning = true)
+            
+            // 2. Pemain & Pengawal (Selalu perbarui posisi dan gambar pemain + bodyguard)
+            player.update();
+            player.draw();
+
+            // Perbarui & gambar kedua bodyguard kiri dan kanan
+            if (bodyguardLeft) {
+                bodyguardLeft.update();
+                bodyguardLeft.draw();
+            }
+            if (bodyguardRight) {
+                bodyguardRight.update();
+                bodyguardRight.draw();
+            }
+
+            // Jika sedang dalam Hitungan Mundur atau Kuis sedang aktif, lewati pembaruan objek bergerak lainnya
+            if (isCountdownActive || isQuizActive) {
+                // Gambar kuis di layar kuis, skip pemrosesan meteor/musuh di bawah
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            // 3. Sistem Pembagian Ronde Berdasarkan Skor
+            // DIUBAH: Kuis interaktif HANYA dipicu saat transisi dari Ronde 5 ke Ronde 6
+            if (level < 10) {
+                const nextLevel = Math.floor(score / 350) + 1; 
+                if (nextLevel > level) {
+                    pendingNextLevel = Math.min(10, nextLevel);
+                    if (level === 5 && pendingNextLevel === 6) {
+                        triggerQuiz('round5');
+                    } else {
+                        level = pendingNextLevel;
+                        updateHUD();
+                        playSound('powerup');
+                    }
+                }
+            }
+
+            // 4. Spawn Musuh Biasa / Meteor
+            if (level < 10) {
+                const spawnChance = 0.018 + (level * 0.003);
+                if (Math.random() < spawnChance && enemies.length < 18) {
+                    enemies.push(new Enemy());
+                }
+            } else {
+                if (!boss && !bossDefeated) {
+                    boss = new Boss();
+                    document.getElementById('boss-hp-container').classList.remove('hidden');
+                }
+            }
+
+            // 5. Perbarui & Gambar Laser Pemain / Bodyguard
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                lasers[i].update();
+                lasers[i].draw();
+
+                if (lasers[i].y < -10 || lasers[i].x < -10 || lasers[i].x > canvas.width + 10) {
+                    lasers.splice(i, 1);
+                }
+            }
+
+            // 6. Perbarui & Gambar Laser Musuh / Raja
+            for (let i = enemyLasers.length - 1; i >= 0; i--) {
+                const eLaser = enemyLasers[i];
+                eLaser.update();
+                eLaser.draw();
+
+                // Deteksi Benturan Laser Musuh dengan Pemain
+                const laserDist = Math.hypot((eLaser.x - (player.x + player.width/2)), (eLaser.y - (player.y + player.height/2)));
+                
+                if (laserDist < player.width / 2 + eLaser.radius) {
+                    enemyLasers.splice(i, 1);
+                    if (player.isInvulnerable === 0) {
+                        lives--;
+                        playSound('hurt');
+                        player.isInvulnerable = 90; 
+                        player.weaponLevel = Math.max(1, player.weaponLevel - 1);
+                        updateHUD();
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    }
+                    continue;
+                }
+
+                if (eLaser.y > canvas.height + 10) {
+                    enemyLasers.splice(i, 1);
+                }
+            }
+
+            // 7. Perbarui & Gambar Pesawat Raja (Boss)
+            if (boss) {
+                boss.update();
+                boss.draw();
+
+                const hpPercent = Math.max(0, (boss.hp / boss.maxHp) * 100);
+                document.getElementById('boss-hp-bar').style.width = hpPercent + '%';
+
+                // Deteksi Tabrakan Fisik Raja dengan Pemain
+                const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
+                const bossRect = { x: boss.x, y: boss.y, width: boss.width, height: boss.height };
+                if (checkCollision(playerRect, bossRect)) {
+                    if (player.isInvulnerable === 0) {
+                        lives--;
+                        playSound('hurt');
+                        player.isInvulnerable = 120; 
+                        player.weaponLevel = Math.max(1, player.weaponLevel - 1);
+                        updateHUD();
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    }
+                }
+
+                // Deteksi Laser Pemain mengenai Raja
+                for (let lIdx = lasers.length - 1; lIdx >= 0; lIdx--) {
+                    const laser = lasers[lIdx];
+                    const hitBoss = checkCollision({ x: laser.x - laser.radius, y: laser.y - laser.radius, width: laser.radius*2, height: laser.radius*2 }, bossRect);
+                    
+                    if (hitBoss) {
+                        boss.hp -= laser.damage;
+                        lasers.splice(lIdx, 1);
+
+                        for (let p = 0; p < 4; p++) {
+                            particles.push(new Particle(laser.x, laser.y, laser.color));
+                        }
+
+                        // Perbaikan eror Macet asynchronous saat mengalahkan Boss
+                        if (boss.hp <= 0) {
+                            bossDefeated = true;
+                            
+                            const bx = boss.x;
+                            const by = boss.y;
+                            const bWidth = boss.width;
+                            const bHeight = boss.height;
+                            const bColor = boss.color;
+
+                            for (let bNum = 0; bNum < 12; bNum++) {
+                                setTimeout(() => {
+                                    const rx = bx + Math.random() * bWidth;
+                                    const ry = by + Math.random() * bHeight;
+                                    spawnExplosion(rx, ry, bColor, 2.5);
+                                }, bNum * 150);
+                            }
+                            
+                            score += 1500; 
+                            boss = null; 
+                            document.getElementById('boss-hp-container').classList.add('hidden');
+                            updateHUD();
+                            
+                            // BARU: Setelah Bos kalah di Ronde 10, trigger kuis bahasa inggris Ronde 10 terlebih dahulu sebelum layar menang!
+                            triggerQuiz('round10');
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // 8. Perbarui & Gambar Musuh Biasa / Meteor Berapi
+            for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+                const enemy = enemies[eIdx];
+                enemy.update();
+                enemy.draw();
+
+                if (enemy.y > canvas.height) {
+                    enemies.splice(eIdx, 1);
+                    continue;
+                }
+
+                // Tabrakan Fisik dengan Pemain
+                const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
+                const enemyRect = { x: enemy.x, y: enemy.y, width: enemy.width, height: enemy.height };
+                
+                if (checkCollision(playerRect, enemyRect)) {
+                    spawnExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2, enemy.color, 1.8);
+                    enemies.splice(eIdx, 1);
+
+                    if (player.isInvulnerable === 0) {
+                        lives--;
+                        playSound('hurt');
+                        player.isInvulnerable = 90;
+                        player.weaponLevel = Math.max(1, player.weaponLevel - 1);
+                        updateHUD();
+                        if (lives <= 0) {
+                            endGame();
+                        }
+                    }
+                    continue;
+                }
+
+                // Tabrakan dengan Laser Kita
+                for (let lIdx = lasers.length - 1; lIdx >= 0; lIdx--) {
+                    const laser = lasers[lIdx];
+                    const distance = Math.hypot((laser.x - (enemy.x + enemy.width/2)), (laser.y - (enemy.y + enemy.height/2)));
+                    
+                    if (distance < (enemy.width / 1.8) + laser.radius) {
+                        enemy.hp -= laser.damage;
+                        lasers.splice(lIdx, 1);
+                        
+                        for (let p = 0; p < 4; p++) {
+                            particles.push(new Particle(laser.x, laser.y, laser.color));
+                        }
+
+                        if (enemy.hp <= 0) {
+                            spawnExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2, enemy.color, 2.0);
+                            score += enemy.scoreVal;
+                            
+                            if (Math.random() < 0.15) { 
+                                powerups.push(new Powerup(enemy.x, enemy.y));
+                            }
+
+                            enemies.splice(eIdx, 1);
+                            updateHUD();
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // 9. Powerups
+            for (let pIdx = powerups.length - 1; pIdx >= 0; pIdx--) {
+                const pu = powerups[pIdx];
+                pu.update();
+                pu.draw();
+
+                const playerRect = { x: player.x, y: player.y, width: player.width, height: player.height };
+                const puRect = { x: pu.x, y: pu.y, width: pu.width, height: pu.height };
+
+                if (checkCollision(playerRect, puRect)) {
+                    playSound('powerup');
+                    if (pu.type === 'weapon') {
+                        // Batasan pengumpulan senjata kini bertambah sampai 5 baris saja
+                        player.weaponLevel = Math.min(5, player.weaponLevel + 1);
+                    } else if (pu.type === 'heal') {
+                        lives = Math.min(5, lives + 1);
+                    }
+                    powerups.splice(pIdx, 1);
+                    updateHUD();
+                    continue;
+                }
+
+                if (pu.y > canvas.height) {
+                    powerups.splice(pIdx, 1);
+                }
+            }
+
+            // 10. Perbarui & Gambar Partikel Ledakan
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- SISTEM MULAI, RESTART, KEMBALI KE MENU & KEMENANGAN ---
+
+        // Logika proses hitungan mundur sebelum aksi game berjalan
+        function runCountdown() {
+            isCountdownActive = true;
+            countdownVal = 3;
+            playSound('countdown-tick');
+            
+            const countdownInterval = setInterval(() => {
+                if (!gameRunning) {
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                
+                countdownVal--;
+                if (countdownVal > 0) {
+                    playSound('countdown-tick');
+                } else if (countdownVal === 0) {
+                    playSound('countdown-go');
+                    // Mulai putar lagu BGM gameplay setelah hitungan berakhir!
+                    startBGM('game');
+                } else {
+                    clearInterval(countdownInterval);
+                    isCountdownActive = false; // Selesai hitungan mundur, game resmi dimulai
+                }
+            }, 1000);
+        }
+
+        function showStartScreen() {
+            gameRunning = false;
+            
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('high-score-display').innerText = highScore;
+            }
+
+            lasers = [];
+            enemies = [];
+            enemyLasers = [];
+            particles = [];
+            powerups = [];
+            boss = null;
+            bossDefeated = false;
+            isCountdownActive = false;
+            isQuizActive = false;
+            // Reset kedua bodyguard saat ke menu utama
+            bodyguardLeft = null; 
+            bodyguardRight = null; 
+
+            toggleOverlay('quiz-screen', false);
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('victory-screen').classList.add('hidden');
+            document.getElementById('boss-hp-container').classList.add('hidden');
+            document.getElementById('home-btn').classList.add('hidden'); 
+
+            document.getElementById('score-display').innerText = "0";
+            document.getElementById('level-display').innerText = "1";
+            document.getElementById('lives-display').innerHTML = "";
+            
+            initDecorativeMeteors();
+
+            // Mulai putar kembali BGM Menu Utama yang santai & megah
+            if (!isMuted) {
+                startBGM('menu');
+            }
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('victory-screen').classList.add('hidden');
+            document.getElementById('boss-hp-container').classList.add('hidden');
+            document.getElementById('home-btn').classList.remove('hidden'); 
+            toggleOverlay('quiz-screen', false);
+            
+            score = 0;
+            level = 1;
+            lives = 3;
+            lasers = [];
+            enemies = [];
+            enemyLasers = [];
+            particles = [];
+            powerups = [];
+            boss = null;
+            bossDefeated = false;
+            isQuizActive = false;
+            
+            resizeCanvas();
+            player = new Player();
+            // Menginisiasi sepasang jet pengawal mini di kiri dan kanan F-22 Anda
+            bodyguardLeft = new Bodyguard(player, 'left');
+            bodyguardRight = new Bodyguard(player, 'right');
+            updateHUD();
+
+            gameRunning = true;
+            
+            // Hentikan BGM Menu saat masuk masa transisi/hitungan mundur
+            stopBGM();
+
+            // Jalankan alur hitungan mundur saat masuk dunia game!
+            runCountdown();
+        }
+
+        function endGame() {
+            gameRunning = false;
+            stopBGM(); // Matikan lagu saat kalah
+            playSound('explosion');
+
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('high-score-display').innerText = highScore;
+            }
+            
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-level').innerText = level === 10 ? "FINAL" : level;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('home-btn').classList.add('hidden'); 
+        }
+
+        function winGame() {
+            gameRunning = false;
+            stopBGM(); // Matikan lagu saat menang
+            playSound('powerup');
+
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('high-score-display').innerText = highScore;
+            }
+            
+            document.getElementById('victory-score').innerText = score;
+            document.getElementById('victory-screen').classList.remove('hidden');
+            document.getElementById('home-btn').classList.add('hidden'); 
+        }
+
+        // --- MANAJEMEN KONTROL ---
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd', 'W', 'S', 'A', 'D'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            isMobile = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchX = touch.clientX - rect.left;
+            touchY = touch.clientY - rect.top;
+            
+            // Mengaktifkan audio context saat ada ketukan pertama di HP
+            if (!isMuted && !gameRunning && !bgmInterval) {
+                startBGM('menu');
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                touchX = touch.clientX - rect.left;
+                touchY = touch.clientY - rect.top;
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            touchX = null;
+            touchY = null;
+        });
+
+        // Trigger BGM pertama kali ketika pengguna mengklik mana saja di layar menu utama (kebijakan autoplay browser)
+        document.addEventListener('click', () => {
+            if (!isMuted && !gameRunning && !bgmInterval) {
+                startBGM('menu');
+            }
+        }, { once: false });
+
+        document.getElementById('mute-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Mencegah dobel klik trigger BGM
+            isMuted = !isMuted;
+            document.getElementById('mute-btn').innerText = isMuted ? '🔇 Bunyi Senyap' : '🔊 Bunyi Aktif';
+            if (isMuted) {
+                stopBGM();
+            } else {
+                if (gameRunning && !isCountdownActive) {
+                    startBGM('game');
+                } else if (!gameRunning) {
+                    startBGM('menu');
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        });
+
+        // Event Listener Tombol Mulai, Reset, dan Navigasi Menu Baru
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+        document.getElementById('victory-restart-btn').addEventListener('click', startGame);
+        
+        // Menghubungkan semua tombol "Kembali ke Menu"
+        document.getElementById('home-btn').addEventListener('click', showStartScreen);
+        document.getElementById('menu-btn-over').addEventListener('click', showStartScreen);
+        document.getElementById('menu-btn-victory').addEventListener('click', showStartScreen);
+
+        // --- Inisialisasi Latar Belakang & Mulai Animasi Loop Pertama ---
+        initStars();
+        initDecorativeMeteors();
+        requestAnimationFrame(gameLoop);
+
+    </script>
+</body>
+</html>
